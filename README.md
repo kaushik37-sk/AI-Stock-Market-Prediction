@@ -140,6 +140,10 @@ This project demonstrated the application of machine learning models to predict 
 Tools & Technologies Used:
 Python Libraries: Pandas, NumPy, Matplotlib, Seaborn
 
+
+## 📝 Code  
+You can find the full implementation here: [stock_predictor.py](stock_predictor.py)
+
 Machine Learning Libraries: Scikit-Learn, XGBoost
 
 Yahoo Finance API: For real-time stock data
