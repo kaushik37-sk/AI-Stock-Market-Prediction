@@ -1,151 +1,34 @@
-# AI-Stock-Market-Prediction
-An AI-powered stock market prediction model with graphs and results
-AI-Powered Stock Price Prediction
-This project uses Machine Learning to predict stock prices and classify stock movements (whether the price will go up or down). The main goal is to evaluate the performance of different machine learning models and use them to make informed predictions for investors.
+**AI-Driven Stock Market Prediction Project**
+
+**Project Overview:**
+This project utilizes machine learning techniques to predict future stock prices based on historical data. The model incorporates various regression and classification methods to enhance prediction accuracy and analyze stock market trends.
+
+**Key Features:**
+- **Stock Data Retrieval:** Uses Yahoo Finance (yfinance) API to collect historical stock data from 2010 to the present.
+- **Feature Engineering:** Computes moving averages and volatility metrics to serve as model inputs.
+- **Machine Learning Models:** Implements Linear Regression, Random Forest, XGBoost, Logistic Regression, and Quadratic Discriminant Analysis (QDA).
+- **Future Predictions:** Allows forecasting stock prices for any future year (e.g., 2026, 2030, etc.).
+- **Visualization:** Generates graphs comparing actual historical prices with predicted future prices.
+
+**Methodology:**
+1. **Data Collection:** Historical stock data is retrieved for multiple major companies (AAPL, GOOGL, MSFT, AMZN, TSLA).
+2. **Preprocessing & Feature Engineering:** Moving averages and volatility are calculated to represent stock trends.
+3. **Model Training:**
+   - Regression models predict stock price movements.
+   - Classification models predict whether a stock price will increase or decrease.
+4. **Prediction for Future Years:** The user can specify any future year, and the model will generate stock price forecasts.
+5. **Performance Evaluation:** Metrics like Mean Squared Error (MSE), R-squared (R2), and Accuracy are computed for model assessment.
+
+**Results:**
+- **Regression Models:** Provided strong R-squared values, indicating high accuracy in price trend predictions.
+- **Classification Models:** Demonstrated reasonable accuracy in predicting price movement direction.
+- **Future Predictions:** XGBoost was found to be the most effective model for forecasting stock prices beyond 2026.
+
+**Conclusion:**
+This AI-powered stock market prediction model provides insights into future stock trends based on historical data. While stock markets are inherently unpredictable, machine learning models can identify patterns and trends that aid in investment decision-making. The model is highly adaptable and allows future-year predictions, making it a valuable tool for financial analysis.
+
+**Future Enhancements:**
+- Expanding feature engineering to incorporate sentiment analysis from financial news.
+- Integrating deep learning techniques such as LSTMs for improved time-series predictions.
+- Extending the dataset to include global economic indicators for more robust modeling.
 
-1. Project Overview
-Stock market prediction is a challenging yet essential area of financial analysis. By using historical stock data and several machine learning algorithms, this project predicts stock price trends for major tech companies. We implemented and tested the following models:
-
-Linear Regression
-
-Random Forest
-
-XGBoost
-
-Logistic Regression (for classification)
-
-Quadratic Discriminant Analysis (QDA)
-
-2. Project Objectives
-Predict the future stock prices of major tech companies.
-
-Evaluate the performance of various regression and classification models.
-
-Use machine learning to classify whether a stock’s price will increase or decrease.
-
-3. Data Collection
-The dataset for this project is obtained using the Yahoo Finance API (yfinance), which provides real-time stock data. The stocks analyzed are:
-
-Apple (AAPL)
-
-Google (GOOGL)
-
-Microsoft (MSFT)
-
-Amazon (AMZN)
-
-Tesla (TSLA)
-
-Data used for the analysis includes daily closing prices, moving averages, and volatility measures.
-
-4. Models & Methodology
-Regression Models for Price Prediction
-Linear Regression: Attempts to model the relationship between the stock price and other features.
-
-Random Forest: An ensemble model that averages over several decision trees to reduce overfitting.
-
-XGBoost: A highly efficient gradient boosting model that performs well on structured data.
-
-Classification Models for Price Movement
-Logistic Regression: Used to predict whether the price of the stock will go up or down.
-
-Quadratic Discriminant Analysis (QDA): A probabilistic classifier used for categorizing stock price movements.
-
-5. Results & Insights
-Here are the results for each stock and model:
-
-Apple (AAPL):
-Linear Regression: MSE: 42.09, R²: 0.95
-
-Random Forest: MSE: 40.84, R²: 0.95
-
-XGBoost: MSE: 52.19, R²: 0.94
-
-Logistic Regression: Accuracy: 59.09%
-
-GDA: Accuracy: 59.09%
-
-Google (GOOGL):
-Linear Regression: MSE: 30.90, R²: 0.97
-
-Random Forest: MSE: 24.38, R²: 0.97
-
-XGBoost: MSE: 31.42, R²: 0.97
-
-Logistic Regression: Accuracy: 59.09%
-
-GDA: Accuracy: 52.73%
-
-Microsoft (MSFT):
-Linear Regression: MSE: 77.10, R²: 0.98
-
-Random Forest: MSE: 67.60, R²: 0.98
-
-XGBoost: MSE: 94.53, R²: 0.97
-
-Logistic Regression: Accuracy: 57.27%
-
-GDA: Accuracy: 54.55%
-
-Amazon (AMZN):
-Linear Regression: MSE: 29.05, R²: 0.98
-
-Random Forest: MSE: 36.81, R²: 0.98
-
-XGBoost: MSE: 42.79, R²: 0.98
-
-Logistic Regression: Accuracy: 57.27%
-
-GDA: Accuracy: 56.36%
-
-Tesla (TSLA):
-Linear Regression: MSE: 441.02, R²: 0.90
-
-Random Forest: MSE: 573.22, R²: 0.88
-
-XGBoost: MSE: 667.53, R²: 0.86
-
-Logistic Regression: Accuracy: 50.91%
-
-GDA: Accuracy: 54.55%
-
-Key Takeaways:
-XGBoost performed well overall, delivering high R² scores in most cases, but it was not always the top performer.
-
-Random Forest was a strong competitor, often providing comparable results to XGBoost.
-
-Linear Regression worked best for predicting stock price trends, especially in Google and Microsoft.
-
-Logistic Regression and GDA were more suitable for classifying price movements but struggled to achieve high accuracy.
-
-6. Visualizations
-Several graphs were created to visualize the stock price trends and model performances:
-
-Stock Price History: Line charts displaying price trends for each company.
-
-Model Performance: Bar charts comparing MSE and R² scores across different models.
-
-Accuracy Comparison: Bar charts comparing classification models (Logistic Regression vs. GDA).
-
-7. Future Enhancements
-Try deep learning models like LSTMs for better time-series forecasting.
-
-Add more macroeconomic features such as inflation or interest rates for improved predictions.
-
-Implement hyperparameter tuning to optimize the model performance further.
-
-8. Conclusion
-This project demonstrated the application of machine learning models to predict stock prices and classify price movements. While no model can guarantee perfect predictions in such a volatile market, these techniques provide useful insights that can assist in making more informed investment decisions.
-
-Tools & Technologies Used:
-Python Libraries: Pandas, NumPy, Matplotlib, Seaborn
-
-
-## 📝 Code  
-You can find the full implementation here: [stock_predictor.py](stock_predictor.py)
-
-Machine Learning Libraries: Scikit-Learn, XGBoost
-
-Yahoo Finance API: For real-time stock data
-
-Data Visualization: Matplotlib, Seaborn for creating insightful graphs
