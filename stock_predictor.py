@@ -10,18 +10,21 @@ from sklearn.ensemble import RandomForestRegressor
 from xgboost import XGBRegressor
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
 from sklearn.metrics import mean_squared_error, r2_score, accuracy_score
-from datetime import datetime
+from datetime import datetime, timedelta
+import warnings
+warnings.filterwarnings("ignore")
 
 # Define stock tickers
 tickers = ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA"]
 end_date = datetime.today().strftime('%Y-%m-%d')
+start_date = "2010-01-01"  # Extended dataset for long-term analysis
 
 # Initialize results dictionary
 all_results = {}
 
 for ticker in tickers:
     print(f"Processing {ticker}...")
-    data = yf.download(ticker, start="2023-01-01", end=end_date)
+    data = yf.download(ticker, start=start_date, end=end_date)
 
     # Create features
     data["Moving_Avg"] = data["Close"].rolling(window=10).mean()
@@ -81,13 +84,22 @@ for ticker in tickers:
     results["GDA"] = {"Accuracy": accuracy_qda}
     all_results[ticker] = results
 
+    # Future Predictions
+    future_year = 2030  # Change this to predict for any future year
+    future_dates = pd.date_range(start=end_date, periods=(future_year - datetime.today().year) * 252, freq='B')
+    future_X = pd.DataFrame(index=future_dates)
+    future_X["Moving_Avg"] = data["Close"].rolling(window=10).mean().iloc[-1]
+    future_X["Volatility"] = data["Close"].pct_change().rolling(window=10).std().iloc[-1]
+    future_X_scaled = scaler.transform(future_X)
+    future_predictions = models["XGBoost"].predict(future_X_scaled)
+
     # Visualization
     plt.figure(figsize=(12, 6))
     plt.plot(data.index, data["Close"], label="Actual Price", linestyle="-", color="blue")
-    plt.plot(data.index[:-1], models["Linear Regression"].predict(scaler.transform(X)), label="Predicted Price (Linear Regression)", linestyle="dashed", color="red")
+    plt.plot(future_dates, future_predictions, label=f"Predicted Price for {future_year}", linestyle="dashed", color="green")
     plt.xlabel("Date")
     plt.ylabel("Stock Price")
-    plt.title(f"{ticker} Stock Price Trends with Predictions")
+    plt.title(f"{ticker} Stock Price Trends with Future Predictions")
     plt.legend()
     plt.grid()
     plt.show()
