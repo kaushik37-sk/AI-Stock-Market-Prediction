@@ -1,111 +1,95 @@
+!pip install ta
+
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 import yfinance as yf
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.ensemble import RandomForestRegressor
-from xgboost import XGBRegressor
-from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
-from sklearn.metrics import mean_squared_error, r2_score, accuracy_score
-from datetime import datetime, timedelta
-import warnings
-warnings.filterwarnings("ignore")
+import ta
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Dropout, Bidirectional
+from tensorflow.keras.callbacks import EarlyStopping
 
-# Define stock tickers
-tickers = ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA"]
-end_date = datetime.today().strftime('%Y-%m-%d')
-start_date = "2010-01-01"  # Extended dataset for long-term analysis
+def download_stock_data(ticker, start, end):
+    try:
+        df = yf.download(ticker, start=start, end=end)
+        if df.empty:
+            print("Error: No data downloaded. Check the ticker symbol and date range.")
+            return None
+        
+        df.ffill(inplace=True)
+        
+        df['RSI'] = ta.momentum.RSIIndicator(df['Close'].squeeze()).rsi()
+        df['MACD'] = ta.trend.MACD(df['Close'].squeeze()).macd()
+        df['EMA'] = ta.trend.EMAIndicator(df['Close'].squeeze(), window=20).ema_indicator()
+        df['OBV'] = ta.volume.OnBalanceVolumeIndicator(df['Close'].squeeze(), df['Volume'].squeeze()).on_balance_volume()
+        bb = ta.volatility.BollingerBands(df['Close'].squeeze())
+        df['BB_High'] = bb.bollinger_hband()
+        df['BB_Low'] = bb.bollinger_lband()
+        
+        df.dropna(inplace=True)
+        return df
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
 
-# Initialize results dictionary
-all_results = {}
+def prepare_data(df, feature='Close', window_size=60):
+    scaler = MinMaxScaler(feature_range=(0,1))
+    df_scaled = scaler.fit_transform(df[[feature]])
+    X, y = [], []
+    for i in range(window_size, len(df_scaled)):
+        X.append(df_scaled[i-window_size:i, 0])
+        y.append(df_scaled[i, 0])
+    return np.array(X), np.array(y), scaler
 
-for ticker in tickers:
-    print(f"Processing {ticker}...")
-    data = yf.download(ticker, start=start_date, end=end_date)
+def build_lstm_model(input_shape):
+    model = Sequential([
+        Bidirectional(LSTM(60, return_sequences=True, input_shape=input_shape)),
+        Dropout(0.3),
+        Bidirectional(LSTM(60, return_sequences=False)),
+        Dropout(0.3),
+        Dense(30, activation='relu'),
+        Dense(1)
+    ])
+    model.compile(optimizer='adam', loss='mean_squared_error')
+    return model
 
-    # Create features
-    data["Moving_Avg"] = data["Close"].rolling(window=10).mean()
-    data["Volatility"] = data["Close"].pct_change().rolling(window=10).std()
-    data.dropna(inplace=True)
+def predict_future(model, X, scaler, steps=30):
+    predictions = []
+    current_input = X[-1].reshape(1, X.shape[1], 1)
+    
+    for _ in range(steps):
+        next_pred = model.predict(current_input)[0][0]
+        predictions.append(next_pred)
+        
+        current_input = np.append(current_input[:,1:,:], [[[next_pred]]], axis=1)
+    
+    return scaler.inverse_transform(np.array(predictions).reshape(-1,1))
 
-    # Define features and target variable
-    X = data[["Moving_Avg", "Volatility"]]
-    y = data["Close"].shift(-1).dropna()
-    X = X.iloc[:len(y), :]
+# Example usage
+ticker = "AAPL"
+start = "2023-01-01"
+end = "2024-01-01"
+data = download_stock_data(ticker, start, end)
 
-    # Split data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    # Standardize data
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-
-    # Train multiple models
-    models = {
-        "Linear Regression": LinearRegression(),
-        "Random Forest": RandomForestRegressor(n_estimators=100, random_state=42),
-        "XGBoost": XGBRegressor(objective='reg:squarederror', n_estimators=100, random_state=42)
-    }
-
-    results = {}
-    for name, model in models.items():
-        model.fit(X_train_scaled, y_train)
-        y_pred = model.predict(X_test_scaled)
-        mse = mean_squared_error(y_test, y_pred)
-        r2 = r2_score(y_test, y_pred)
-        results[name] = {"MSE": mse, "R2": r2}
-
-    # Train Logistic Regression (for price movement classification)
-    y_class = (data["Close"].shift(-1) > data["Close"]).astype(int).dropna()
-    X_class = X.iloc[:len(y_class), :]
-    min_length = min(len(X_class), len(y_class))
-    X_class = X_class.iloc[:min_length, :]
-    y_class = y_class.iloc[:min_length]
-
-    X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(X_class, y_class, test_size=0.2, random_state=42)
-
-    logistic_model = LogisticRegression()
-    logistic_model.fit(X_train_c, y_train_c)
-    y_pred_logistic = logistic_model.predict(X_test_c)
-    accuracy_logistic = accuracy_score(y_test_c, y_pred_logistic)
-
-    # Train GDA Model
-    qda_model = QDA()
-    qda_model.fit(X_train_c, y_train_c)
-    y_pred_qda = qda_model.predict(X_test_c)
-    accuracy_qda = accuracy_score(y_test_c, y_pred_qda)
-
-    # Store results
-    results["Logistic Regression"] = {"Accuracy": accuracy_logistic}
-    results["GDA"] = {"Accuracy": accuracy_qda}
-    all_results[ticker] = results
-
-    # Future Predictions
-    future_year = 2030  # Change this to predict for any future year
-    future_dates = pd.date_range(start=end_date, periods=(future_year - datetime.today().year) * 252, freq='B')
-    future_X = pd.DataFrame(index=future_dates)
-    future_X["Moving_Avg"] = data["Close"].rolling(window=10).mean().iloc[-1]
-    future_X["Volatility"] = data["Close"].pct_change().rolling(window=10).std().iloc[-1]
-    future_X_scaled = scaler.transform(future_X)
-    future_predictions = models["XGBoost"].predict(future_X_scaled)
-
-    # Visualization
-    plt.figure(figsize=(12, 6))
-    plt.plot(data.index, data["Close"], label="Actual Price", linestyle="-", color="blue")
-    plt.plot(future_dates, future_predictions, label=f"Predicted Price for {future_year}", linestyle="dashed", color="green")
-    plt.xlabel("Date")
-    plt.ylabel("Stock Price")
-    plt.title(f"{ticker} Stock Price Trends with Future Predictions")
+if data is not None:
+    X, y, scaler = prepare_data(data)
+    X = X.reshape((X.shape[0], X.shape[1], 1))
+    
+    model = build_lstm_model((X.shape[1], 1))
+    early_stopping = EarlyStopping(monitor='loss', patience=3, restore_best_weights=True)
+    model.fit(X, y, epochs=20, batch_size=32, callbacks=[early_stopping])
+    
+    predictions = model.predict(X)
+    predictions = scaler.inverse_transform(predictions)
+    
+    future_preds = predict_future(model, X, scaler, steps=30)
+    
+    plt.figure(figsize=(12,6))
+    plt.plot(data.index[-len(predictions):], data['Close'].values[-len(predictions):], label='Actual Price')
+    plt.plot(data.index[-len(predictions):], predictions, label='Predicted Price')
+    plt.axvline(x=data.index[-1], color='r', linestyle='--', label='Prediction Start')
+    plt.plot(pd.date_range(data.index[-1], periods=30, freq='D'), future_preds, label='Future Predictions', linestyle='dashed')
     plt.legend()
-    plt.grid()
     plt.show()
-
-# Print results
-for ticker, metrics in all_results.items():
-    print(f"\nResults for {ticker}:")
-    for model, values in metrics.items():
-        print(f"{model} - {values}")
