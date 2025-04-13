@@ -1,5 +1,3 @@
-!pip install ta
-
 import numpy as np
 import pandas as pd
 import yfinance as yf
@@ -67,29 +65,35 @@ def predict_future(model, X, scaler, steps=30):
     
     return scaler.inverse_transform(np.array(predictions).reshape(-1,1))
 
-# Example usage
-ticker = "AAPL"
-start = "2023-01-01"
-end = "2024-01-01"
-data = download_stock_data(ticker, start, end)
+# Main function to take user input and run the stock prediction
+def main():
+    ticker = input("Enter the stock ticker symbol (e.g., AAPL, TSLA, MSFT): ").strip()
+    start = input("Enter the start date (YYYY-MM-DD): ").strip()
+    end = input("Enter the end date (YYYY-MM-DD): ").strip()
+    
+    data = download_stock_data(ticker, start, end)
 
-if data is not None:
-    X, y, scaler = prepare_data(data)
-    X = X.reshape((X.shape[0], X.shape[1], 1))
-    
-    model = build_lstm_model((X.shape[1], 1))
-    early_stopping = EarlyStopping(monitor='loss', patience=3, restore_best_weights=True)
-    model.fit(X, y, epochs=20, batch_size=32, callbacks=[early_stopping])
-    
-    predictions = model.predict(X)
-    predictions = scaler.inverse_transform(predictions)
-    
-    future_preds = predict_future(model, X, scaler, steps=30)
-    
-    plt.figure(figsize=(12,6))
-    plt.plot(data.index[-len(predictions):], data['Close'].values[-len(predictions):], label='Actual Price')
-    plt.plot(data.index[-len(predictions):], predictions, label='Predicted Price')
-    plt.axvline(x=data.index[-1], color='r', linestyle='--', label='Prediction Start')
-    plt.plot(pd.date_range(data.index[-1], periods=30, freq='D'), future_preds, label='Future Predictions', linestyle='dashed')
-    plt.legend()
-    plt.show()
+    if data is not None:
+        X, y, scaler = prepare_data(data)
+        X = X.reshape((X.shape[0], X.shape[1], 1))
+        
+        model = build_lstm_model((X.shape[1], 1))
+        early_stopping = EarlyStopping(monitor='loss', patience=3, restore_best_weights=True)
+        model.fit(X, y, epochs=20, batch_size=32, callbacks=[early_stopping])
+        
+        predictions = model.predict(X)
+        predictions = scaler.inverse_transform(predictions)
+        
+        future_preds = predict_future(model, X, scaler, steps=30)
+        
+        plt.figure(figsize=(12,6))
+        plt.plot(data.index[-len(predictions):], data['Close'].values[-len(predictions):], label='Actual Price')
+        plt.plot(data.index[-len(predictions):], predictions, label='Predicted Price')
+        plt.axvline(x=data.index[-1], color='r', linestyle='--', label='Prediction Start')
+        plt.plot(pd.date_range(data.index[-1], periods=30, freq='D'), future_preds, label='Future Predictions', linestyle='dashed')
+        plt.title(f"Stock Price Prediction for {ticker}")
+        plt.legend()
+        plt.show()
+
+if __name__ == "__main__":
+    main()
