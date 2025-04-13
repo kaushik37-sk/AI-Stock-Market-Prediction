@@ -1,113 +1,77 @@
-Advanced Stock Prediction Using LSTM
-Project Overview
-In this project, I built a stock price prediction model using Long Short-Term Memory (LSTM) networks to predict the future stock prices of a given company. By leveraging technical indicators like RSI, MACD, Bollinger Bands, and EMA, the model uses historical stock data to make predictions. I created this project to explore how deep learning can be applied to financial data for stock market forecasting. The model is built using Python, with popular libraries like TensorFlow, pandas, and yfinance to handle the data, build the model, and visualize the results.
+AI Stock Market Prediction
+Overview
+This project utilizes machine learning techniques, specifically LSTM (Long Short-Term Memory) neural networks, to predict future stock prices based on historical data. The model uses various technical indicators (such as RSI, MACD, EMA, OBV, and Bollinger Bands) to enhance the prediction's accuracy. The stock data is sourced from Yahoo Finance using the yfinance library.
 
-Key Features
-Download Historical Stock Data: Pulls data for any stock ticker from Yahoo Finance for a specified date range.
+Features
+Downloads stock data for a given ticker symbol from Yahoo Finance.
 
-Technical Indicators: Uses indicators like RSI, MACD, EMA, and Bollinger Bands to enhance predictions.
+Calculates multiple technical indicators for improved prediction.
 
-LSTM Model: Implements a Bidirectional LSTM to predict future stock prices.
+Prepares the data by scaling it and creating sliding windows for training the model.
 
-Future Price Prediction: Predicts the stock's price for the next 30 days.
+Builds and trains a Bidirectional LSTM model to predict stock prices.
 
-Visualization: Plots actual prices, predicted prices, and future predictions in an easy-to-understand graph.
-
-Technologies Used
-Python
-
-TensorFlow
-
-Keras
-
-Pandas
-
-NumPy
-
-yfinance (for data download)
-
-TA-Lib (for calculating technical indicators)
-
-Matplotlib (for data visualization)
-
-Scikit-learn (for data scaling)
-
-How It Works
-Download Stock Data: The first step involves downloading historical stock data using the yfinance library. You can specify the stock ticker (e.g., AAPL for Apple) and the date range.
-
-Feature Engineering: The project calculates several technical indicators like RSI (Relative Strength Index), MACD (Moving Average Convergence Divergence), EMA (Exponential Moving Average), OBV (On-Balance Volume), and Bollinger Bands to enhance the prediction process. These are key indicators used by traders to make informed decisions.
-
-Preprocessing Data: The data is scaled using MinMaxScaler to normalize values. A sliding window approach is applied to split the data into sequences (using the past 60 days of data to predict the next day's price).
-
-LSTM Model: The data is fed into a Bidirectional LSTM model, a type of recurrent neural network (RNN) designed to handle time series data. This model learns from the historical data and makes predictions.
-
-Model Training: The model is trained for 20 epochs using EarlyStopping to prevent overfitting.
-
-Prediction: After training, the model predicts future stock prices, and the result is plotted alongside the actual historical prices.
-
-Visualization: The final output includes a graph showing the stock's historical prices, predicted prices, and future predictions for the next 30 days.
+Predicts future stock prices and visualizes the results.
 
 Requirements
-To run this project, you’ll need the following libraries:
-
-TA-Lib: For technical analysis indicators
-
-yfinance: For downloading stock data from Yahoo Finance
-
-pandas: For data manipulation
-
-NumPy: For numerical operations
-
-matplotlib: For visualization
-
-tensorflow: For building and training the LSTM model
-
-scikit-learn: For scaling the data
-
-You can install all the necessary packages by running the following command:
+Before running the script, make sure to install the following libraries:
 
 bash
 Copy
 Edit
-pip install ta yfinance pandas numpy tensorflow matplotlib scikit-learn
+pip install numpy pandas yfinance ta matplotlib scikit-learn tensorflow
 Usage
-To use the project, simply replace the ticker, start, and end dates in the example usage:
+Step 1: Download Stock Data
+The script begins by asking the user for the stock ticker symbol, start date, and end date for downloading historical stock data. For example, you can input AAPL for Apple, or TSLA for Tesla.
+
+bash
+Copy
+Edit
+Enter the stock ticker symbol (e.g., AAPL, TSLA, MSFT): AAPL
+Enter the start date (YYYY-MM-DD): 2020-01-01
+Enter the end date (YYYY-MM-DD): 2022-01-01
+Step 2: Data Preprocessing
+The stock data is cleaned and preprocessed:
+
+Missing values are forward-filled.
+
+Technical indicators are calculated (RSI, MACD, EMA, OBV, and Bollinger Bands).
+
+The data is scaled using MinMaxScaler for model training.
+
+Step 3: Build and Train the Model
+An LSTM model is built with two Bidirectional LSTM layers and two Dropout layers to reduce overfitting. The model is trained using the adam optimizer and mean_squared_error loss function. Early stopping is employed to prevent overtraining and ensure the best model is used.
+
+Step 4: Prediction and Visualization
+Once trained, the model predicts the stock prices for the test data. It also predicts the next 30 days of stock prices (future predictions). The results are plotted for visual comparison, showing both actual and predicted stock prices, with future predictions shown in a dashed line.
 
 python
 Copy
 Edit
-ticker = "AAPL"  # Change this to the stock you want to predict (e.g., MSFT, TSLA)
-start = "2023-01-01"
-end = "2024-01-01"
-After setting up the ticker and date range, run the script, and it will:
+plt.figure(figsize=(12,6))
+plt.plot(data.index[-len(predictions):], data['Close'].values[-len(predictions):], label='Actual Price')
+plt.plot(data.index[-len(predictions):], predictions, label='Predicted Price')
+plt.axvline(x=data.index[-1], color='r', linestyle='--', label='Prediction Start')
+plt.plot(pd.date_range(data.index[-1], periods=30, freq='D'), future_preds, label='Future Predictions', linestyle='dashed')
+plt.title(f"Stock Price Prediction for {ticker}")
+plt.legend()
+plt.show()
+Step 5: Results
+The results will display a graph with the actual stock prices versus predicted prices, followed by predicted values for the next 30 days.
 
-Download the stock data
+File Breakdown
+main.py: The main script that performs all the tasks: downloading stock data, preprocessing, model building, training, and visualization.
 
-Train the LSTM model
+README.md: Documentation that explains how to set up and run the project.
 
-Plot the historical data, predicted data, and future stock predictions
-
-Example Output
-The script will generate a plot with:
-
-The actual stock prices (blue line)
-
-The predicted prices from the LSTM model (orange line)
-
-Future price predictions for the next 30 days (dashed line)
-
+requirements.txt: A list of required Python libraries for the project.
 
 Future Enhancements
-Here are a few ways this project could be improved:
+Model Optimization: Implement hyperparameter tuning (e.g., grid search or random search) to improve model performance.
 
-Model Improvement: Experiment with different model architectures, including adding more LSTM layers or using different types of neural networks.
+Additional Features: Incorporate more features like sentiment analysis or news-based predictions.
 
-Hyperparameter Tuning: Tune hyperparameters like the learning rate and batch size to improve accuracy.
+Deployment: Make the model accessible via a web interface or as an API for real-time stock prediction.
 
-Multiple Stocks: Allow the prediction model to handle multiple stock tickers simultaneously.
-
-Real-time Data: Incorporate live stock data to make real-time predictions using the model.
-
-Conclusion
-This project is a hands-on application of machine learning in the finance domain, specifically for stock market prediction. By using a Bidirectional LSTM and technical indicators, the model offers a robust method for forecasting future stock prices based on historical data. It’s an exciting starting point for anyone interested in the intersection of finance and deep learning.
-
+License
+This project is licensed under the MIT License - see the LICENSE file for details.
